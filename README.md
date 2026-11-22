@@ -19,11 +19,13 @@ Twelve principles for keeping a person in control of AI agents that act on their
 
 ---
 
-A year ago "AI agent" mostly meant a chatbot that could call a function. Now it means a process that edits your codebase, runs shell commands, opens pull requests, hits production APIs and spins up more agents to help, often three or four at once, usually while you are doing something else. And more and more of them work for a team, or for somebody else's customer.
+I run several coding agents at once, mostly Claude Code and Codex. They edit code, run shell commands, open pull requests and deploy, usually while I'm doing something else. More people now run agents like that for a whole team, or for their own customers.
 
-Almost all the effort so far has gone into making these agents more capable. Very little has gone into the part that keeps you out of trouble: the moment between an agent deciding to do something and it happening. That is the window where a person can say no, or not yet, or fine, go ahead. On most setups there is nothing in that window. There is a log nobody reads and a terminal you are supposed to be watching.
+The agents got good fast. The moment between an agent deciding to do something and actually doing it didn't get any better. That's where a person gets to say no, or not yet, or go ahead. On most setups it's a terminal you're supposed to be watching.
 
-This is an attempt to write down what belongs there. It is not tied to any one tool. These are the rules I keep landing on after watching agents do things their owners did not expect, and after getting the "waiting for your permission" screen back from lunch more times than I want to count. Keep the ones that hold up. Argue with the rest.
+I started building Pushary after coming back from lunch to "waiting for your permission" one too many times. The first version only told me when an agent had finished. That turned out to be the wrong problem. The real one was the agent stuck halfway, waiting on a question I didn't know it had asked.
+
+These are the rules I've ended up with since, and from watching agents do things their owners didn't expect. They aren't tied to any tool, including mine. If one of them is wrong, tell me.
 
 ---
 
@@ -31,117 +33,123 @@ This is an attempt to write down what belongs there. It is not tied to any one t
 
 ### 1. Autonomy is a dial, not a switch
 
-An agent reading a file and an agent dropping a database table should not get the same answer. How much freedom an agent gets should track how bad it is when it gets the action wrong. Most tools treat this as one on/off setting for the whole agent, which is exactly how you end up either confirming everything by hand or confirming nothing and hoping.
+An agent reading a file and an agent dropping a database table shouldn't get the same answer. The more damage a wrong step can do, the less freedom the agent should have to take it alone. Most tools give you one setting for the whole agent, on or off. So you end up confirming everything by hand, or confirming nothing and hoping.
 
 ### 2. Gate the action, not the agent
 
-Whether you trust a call has almost nothing to do with which model made it. Claude, GPT, some 7B model on a laptop, they will all run `git push --force` against the wrong branch if you let them. What matters is the action and its arguments. Write the rules against those and they hold no matter which agent is driving, and no matter how many you are running at once.
+Whether a step is safe has almost nothing to do with which model wants to take it. Claude, GPT and some 7B model on a laptop will all run `git push --force` on the wrong branch if you let them. So write the rules against the command and its arguments. Then they hold no matter which agent is driving.
 
 ### 3. Approve by exception
 
-Ask a human to confirm everything and they stop reading the confirmations. By the twentieth "Allow npm install?" the yes is a reflex, and that same reflex sails right through the one prompt that mattered. Let the policy wave through the boring stuff, hard-block the obviously bad stuff, and only pull a person in for the cases in the middle, where judgment is the whole point.
+Ask someone to confirm everything and they stop reading. By the twentieth "Allow npm install?" the yes is a reflex, and it goes straight through the one prompt that mattered. Let the policy allow the boring stuff and block the obviously bad stuff. Only ask a person about what's left in the middle.
 
 ### 4. Attention is the budget you are spending
 
-Every notification costs a little of someone's attention, and that account only goes down. Ping someone each time an agent finishes a file and they will mute you within the hour, which means they also mute the alert that a deploy just failed. Send fewer. Make the ones you do send worth looking up from what you were doing.
+Every notification spends a bit of someone's attention, and they don't get it back. Ping someone each time an agent finishes a file and they'll mute you within the hour. Then they miss the one about the failed deploy too. Send fewer, and make each one worth looking up for.
 
 ### 5. Reach the human where they are
 
-If approving an action means being at your desk with the right terminal open, then in practice nobody approves anything. They either babysit the agent, which defeats the purpose, or they wander off and let it run unwatched, which is worse. People should be able to approve, deny or answer from their phone, from a meeting, from the kitchen.
+If approving a step means sitting at your desk with the right terminal open, nobody approves anything. People babysit the agent, which defeats the point, or they walk off and let it run unwatched. You should be able to approve, deny or answer from your phone, wherever you are.
 
 ### 6. If the ping goes unanswered, call
 
-A push is easy to miss. The phone is face down, it sank under three group chats, you are at lunch. Meanwhile the agent sits on one question for forty minutes and gets nothing done. If a question only you can answer has been waiting a minute or two, the next step should be louder: ring the phone.
+A push notification is easy to miss. Your phone's face down, or you're at lunch. Meanwhile the agent has been sitting on one question for forty minutes. If a question only you can answer has waited a minute or two, ring the phone.
 
-The call has to be worth picking up. It should say which agent is asking and what it wants to run, let you ask what that means, and take yes, no, or what to do instead. A yes should be read back before it counts. And it should only ring the number the person confirmed, in the hours they picked. Nobody wants their agent calling at 3 a.m. about a lint fix.
+The call has to be worth picking up. It should say which agent is asking and what it wants to run, explain it if you ask, and take yes, no, or what to do instead. Read a yes back before it counts. Only ring the number the person confirmed, and only in the hours they picked. Nobody wants a call at 3 a.m. about a lint fix.
 
 ### 7. Warn the person. Don't overrule them.
 
-When the person allowed to decide is on the phone, tell them plainly what is dangerous about the step and let them decide. A call or a notification that ends with "you'll have to approve this at your desk" is no better than no call at all. The agent stays stuck and the person learns to ignore you.
+The first version of our calls refused risky steps. It explained the step, then told you to go approve it at your desk. That call was useless. The agent stayed stuck, and I'd been interrupted for nothing.
 
-Some teams will want certain steps kept off the phone entirely, say anything touching production. That is a fine rule, but it should be a rule the team wrote down, not a default the tool imposed on everyone.
+Now the call says plainly what's dangerous about the step and lets you decide. If you're the person allowed to approve it, a phone call shouldn't take that away.
+
+Some teams want certain steps kept off the phone, anything touching production for example. That's fine when the team chose it and wrote it down. It shouldn't be something the tool decides for everyone.
 
 ### 8. Fail closed
 
-Sooner or later the request will not get through. Phone is off, the call goes to voicemail, the person is asleep. When that happens the action waits. It does not proceed. An agent that fired a risky command because a timeout ran out and nobody said no was never really being supervised. And if "wait for approval" keeps turning into "blocked forever", that is a hint the policy is asking about things it should have decided on its own.
+Sometimes the question won't get through. The phone's off, or the call goes to voicemail. Then the action waits. A risky command that ran because a timeout expired and nobody said no wasn't supervised at all.
+
+If waiting keeps turning into "blocked forever", the policy is asking about things it should be deciding itself.
 
 ### 9. Ask the person who owns the decision
 
-In a team, the agent should ask the person who started it. A shared channel where everyone assumes somebody else answered is how a question sits for an hour.
+On a team, an agent should ask the person who started it. Post the question to a shared channel and everyone assumes someone else answered it.
 
-Some steps belong to someone other than the person running the agent. A deploy might belong to whoever is on call, a payment to finance. Route those by rule, to a role or a named person, and keep the rule somewhere the whole team can see it.
+Some steps belong to someone else. A deploy might belong to whoever's on call, a payment to finance. Route those by rule, to a role or a named person, and keep the rule where the whole team can see it.
 
-And when an agent acts for someone else's customer, a refund, an email to their list, a change to their account, the yes belongs to that customer. A model can guess what I would allow on my own laptop. It cannot consent for a stranger.
+When an agent works for someone else's customer, say issuing a refund or emailing their list, the yes belongs to that customer.
 
 ### 10. One policy for every agent and every teammate
 
-Nobody can hold five different permission setups in their head. Once each tool keeps its own config, in its own format, in its own place, you have lost the thread on what any of your agents can actually do. That gets worse when ten people each run three of them. Write the rules once and apply them everywhere. If you cannot say what all your agents are allowed to do without opening five files, you do not really know.
+Nobody can keep five permission setups in their head. Once every tool has its own config file, you've lost track of what your agents can actually do, and it gets worse when ten people each run a few. Write the rules once and use them everywhere, for every agent and everyone on the team.
 
 ### 11. Every decision leaves a record your team can read
 
-Write down each decision as it happens: what was asked, who approved or denied it, and the ones the policy decided on its own without anyone looking. Especially those. The auto-approved actions are invisible by design, and they are the first thing you will go hunting for when something breaks.
+Write down every decision when it happens: what was asked, who answered, and what the policy approved without asking anyone. The auto-approved ones matter most. Nobody looked at them, so they're the first thing you'll go looking for when something breaks.
 
-A history that lives in terminal scrollback, or inside a process that has already exited, is not a record. It has to outlive the session, be searchable and exportable, and answer the question a team actually asks after an incident: who said yes? Then read it together. When the same question keeps coming back with the same answer, turn that answer into a rule so nobody gets asked again.
+Terminal scrollback isn't a record, and neither is a process that already exited. Keep it somewhere that outlives the session and that you can search, so you can answer the question every incident review starts with: who said yes?
+
+Read it together now and then. When the same question keeps getting the same answer, make it a rule and stop asking.
 
 ### 12. A human can always pull the cord
 
-However much rope you hand your agents, keep one move that takes it all back at once. Not "reconfigure the policy", not "let the current step finish". Stop, everything, now. Most weeks you will never reach for it. The reason you can give an agent real autonomy in the first place is that you can take it back the moment it goes sideways.
+Keep one button that stops all of your agents at once, in the middle of whatever they're doing. You'll rarely press it. It's still the reason I'm comfortable letting them run while I'm away.
 
 ---
 
 ## Why this is suddenly a problem
 
-For most of software's history, the thing doing the action and the person on the hook for it were the same. You typed the command, you owned the result. Agents pull those apart. The thing acting is fast and automated; the person responsible is slow and somewhere else. Everything above is about stitching the two back together across that distance, without making the human sit in the loop for every trivial step.
+Whoever ran a command used to be the person on the hook for it. Agents split that. The agent acts in seconds, and the person who answers for it is in a meeting.
 
-In 2026 most of the big AI labs shipped some way to approve their own agent from a phone. That helps, and it also shows the gap: each one only answers for its own agent, it only asks the developer who pays for it, and people rarely run just one agent. Teams run many. Products built on agents act for customers no lab will ever talk to.
+In 2026 most of the big AI labs shipped a way to approve their own agent from a phone. That helps. But each one only covers its own agent and only asks the developer paying for it. Hardly anyone runs just one agent anymore. Teams run lots of them, and products built on agents act for customers no lab will ever talk to.
 
-There are two ways to blow it. Lock it down too hard and people drown in prompts, learn to rubber-stamp them, and eventually set the agent to "don't ask" just to make it stop, which is the opposite of what you wanted. Leave it too loose and you learn what your agents have been up to from the incident review. The principles here are the narrow path in between.
+There are two ways to get this wrong. Lock it down and people drown in prompts until they switch the agent to "don't ask". Leave it open and you find out what your agents did in the incident review.
 
 ## How to actually do it
 
-You do not need a specific vendor for any of this. It comes down to five pieces that have to work together:
+You don't need any particular vendor for this. You need five pieces that work together:
 
-- A **policy engine** that decides, per action, whether to allow, deny or ask, configured once across every agent and every teammate.
-- An **approval path** that reaches a person wherever they are, escalates from a notification to a phone call when the first ask is missed, and waits when it cannot reach anyone.
-- **Routing** that sends each question to the person who owns that decision: whoever started the agent, a named teammate, a role, or the customer the agent works for.
-- A **record** of every decision, who made it and why, that you can still pull up months later.
-- A **kill switch** that stops one agent, or all of them, on demand.
+- A **policy** that decides, for each action, whether to allow it, block it or ask. One policy for every agent and every teammate.
+- A way to **reach the person** wherever they are: a notification first, a phone call if they miss it, and waiting if nobody answers.
+- **Routing**, so each question goes to whoever owns that decision: the person who started the agent, a named teammate, a role, or the customer.
+- A **record** of every decision and who made it, that you can still find months later.
+- A **kill switch** that stops one agent or all of them.
 
-What you run matters less than whether you can answer, right now, for any agent you have going: what is it allowed to do, who gets asked when it wants more, what happens if they don't answer, where is that written down, and how do I stop it.
+A quick check for any agent you run today: what is it allowed to do, who gets asked when it wants more, what happens if they don't answer, where is that written down, and how do you stop it?
 
 ---
 
 ## Questions people ask
 
 **What is human-in-the-loop for AI agents?**
-It means a person approves, denies or redirects an AI agent's action before the action happens, for the steps where a mistake would be costly. Low-risk actions run on their own. High-risk ones wait for a yes.
+A person approves, denies or redirects an AI agent's action before it happens, for the steps where a mistake would be costly. Low-risk actions run on their own. High-risk ones wait for a yes.
 
 **When should an AI agent ask a human?**
-When the action is hard to undo or reaches outside the agent's sandbox: pushing to a shared branch, deleting data, deploying, spending money, contacting customers. Reading files and running tests usually should not need a person. Principles 1 to 3 cover this.
+When the action is hard to undo or reaches outside the agent's sandbox: pushing to a shared branch, deleting data, deploying, spending money, contacting customers. Reading files and running tests usually shouldn't need a person. Principles 1 to 3 cover this.
 
 **What should happen if the person misses the approval notification?**
-Escalate. After a minute or two, call their phone, explain what the agent wants and take the answer on the call. If the call is missed too, the action keeps waiting. It never goes ahead by default. See principles 6 and 8.
+Escalate. After a minute or two, call their phone, explain what the agent wants and take the answer on the call. If they miss the call too, the action keeps waiting. It never goes ahead by default. See principles 6 and 8.
 
 **Should someone be able to approve a risky step on a phone call?**
-Yes, if they are the person allowed to decide. The call should name the danger first and read the yes back. A team can still require that some steps are only approved at a keyboard, as a rule it writes down. See principle 7.
+Yes, if they're the person allowed to decide. The call should name the danger first and read the yes back. A team can still require some steps to be approved at a keyboard, as a rule it writes down. See principle 7.
 
 **Who should approve an AI agent's action in a team?**
 The person who started the agent, by default. Steps that belong to someone else, like a production deploy or a payment, go to a named teammate or a role by rule. Everyone should be able to see afterwards who said yes. See principles 9 and 11.
 
 **How do you keep a person in control of Claude Code, Codex or other coding agents?**
-Use their permission hooks to send each tool call through one policy, ask a person only for the risky ones, reach that person on their phone, and record every answer. The same rules should apply to every agent you run.
+Use their permission hooks to send each tool call through one policy, ask a person only about the risky ones, reach that person on their phone, and record every answer. The same rules should apply to every agent you run.
 
 **What about AI agents that act for customers?**
-The customer is the one who should approve. A refund, an email to their contacts or a change to their account needs their yes, on their phone, with a record of who answered. The company running the agent cannot consent on their behalf.
+The customer should approve. A refund, an email to their contacts or a change to their account needs their yes, on their phone, with a record of who answered. The company running the agent can't consent for them.
 
 **Do I need a specific tool to follow this?**
-No. Build it on your own infrastructure, wire it together from open-source parts, or use something that does all of it.
+No. Build it yourself, wire it together from open-source parts, or use something that does all of it.
 
 ---
 
 ## How Pushary does it
 
-Pushary is one implementation, built by the people who maintain this document. You do not need it to follow anything above.
+I build Pushary, and it's one way to do all of this. You don't need it to follow anything above.
 
 | Principle | In Pushary |
 | --- | --- |
@@ -164,7 +172,7 @@ Read more about [human-in-the-loop for AI agents](https://pushary.com/human-in-t
 
 ## Contributing
 
-These are meant to be argued with. If one is wrong, soft or missing, open an issue or a pull request and make the case. The point is a description of agent oversight that the people doing it agree with, not a frozen text.
+If one of these is wrong or missing something, open an issue or a pull request and make the case. If it's better than what's here, I'll change it.
 
 ## Citing
 
