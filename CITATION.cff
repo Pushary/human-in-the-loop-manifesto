@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you reference these principles, please cite them as below."
+title: "Human-in-the-Loop for AI Agents"
+abstract: "Twelve principles for keeping a person in control of AI agents that act on their own: when an agent should ask, who it should ask, and what happens when nobody answers."
+authors:
+  - family-names: Ghani
+    given-names: Aadil
+version: "2.0.0"
+date-released: "2026-11-22"
+url: "https://github.com/Pushary/human-in-the-loop-manifesto"
+repository-code: "https://github.com/Pushary/human-in-the-loop-manifesto"
+license: CC-BY-4.0
+keywords:
+  - human-in-the-loop
+  - ai-agents
+  - agent-governance
+  - approvals
+  - ai-safety
